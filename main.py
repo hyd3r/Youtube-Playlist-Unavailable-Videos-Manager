@@ -1,16 +1,20 @@
 import os
+import io
 
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 
 import PySimpleGUI as sg
+from PIL import Image
+import requests
 
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 
+
 def main():
     layout1 = [[sg.Text('Please authenticate')],
-              [sg.Button('auth')]]
+               [sg.Button('auth')]]
 
     window = sg.Window('YTPM Auth', layout1)
 
@@ -38,29 +42,42 @@ def main():
         maxResults=25,
         mine=True
     )
-    response = request.execute()
+    pl_list = request.execute()
+    pl_items = pl_list["items"]
 
-    layout = [[sg.Text('Some text on Row 1')],
-              [sg.Text('Enter something on Row 2'), sg.InputText()],
-              [sg.Button('Ok'), sg.Button('Cancel')]]
+    layout1 = list(range(25))
+    num = 0
+    for item in pl_items:
+        respo = requests.get(item["snippet"]["thumbnails"]["medium"]["url"])
+        pil_image = Image.open(io.BytesIO(respo.content))
+        png_bio = io.BytesIO()
+        pil_image.save(png_bio, format="PNG")
+        png_data = png_bio.getvalue()
 
-    window = sg.Window('Youtube Playlist Manager', layout)
+        layout1[num] = [[sg.Image(data=png_data, key="-PL-IMG-")], [sg.Button(str(item["snippet"]["title"]), key=item["id"])]]
+        num += 1
+
+    layout = [[sg.Column(layout1[ite], element_justification='c') for ite in range(num)]]
+    window = sg.Window('Choose a playlist', layout, finalize=True)
+    window.bring_to_front()
+    playlist_id = ""
 
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
             break
-        elif event == 'Ok':
-            request = youtube.playlistItems().list(
-                part="snippet",
-                maxResults=50,
-                pageToken="EAAaB1BUOkNPZ0g",
-                playlistId="PLGDnnSanD6iiJGSPEQgmP4AWpO1Dx9RHK"
-            )
-            response = request.execute()
-            print(response)
+        elif event != sg.WIN_CLOSED:
+            playlist_id = window[event].key
+            break
 
     window.close()
+
+    request = youtube.playlistItems().list(
+        part="snippet",
+        maxResults=50,
+        playlistId=playlist_id
+    )
+    selected_playlist = request.execute()
 
 
 
