@@ -36,34 +36,38 @@ class Table(sg.Table):
 
 
 scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
+working_directory = os.getcwd()
 
 
 def main():
-
-    layout1 = [[sg.Text('Please authenticate')],
+    layout1 = [[sg.Text('Please authenticate. Browse to your client secret json file then click login')],
+               [sg.InputText(key="-FILE_PATH-"), sg.FileBrowse(initial_folder=working_directory, file_types=(("JSON Files", "*.json"),), key="-BROWSE-")],
                [sg.Button('Click here to Login')]]
 
-    window = sg.Window('YTPM Auth', layout1)
+    window = sg.Window('YT API Auth', layout1, finalize=True)
 
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
             break
         elif event == 'Click here to Login':
-            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
+            if values["-FILE_PATH-"] == "":
+                sg.Popup('Browse to your secret json file first before logging in', keep_on_top=True)
+                continue
+            else:
+                os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
 
-            api_service_name = "youtube"
-            api_version = "v3"
-            client_secrets_file = "client_secret_873611161470-5i6re2pfh3mufd5h8d0kivqhqmc602h2.apps.googleusercontent.com.json"
+                api_service_name = "youtube"
+                api_version = "v3"
+                client_secrets_file = values["-FILE_PATH-"]
 
-            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-                client_secrets_file, scopes)
-            credentials = flow.run_local_server()
-            youtube = googleapiclient.discovery.build(
-                api_service_name, api_version, credentials=credentials)
+                flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+                    client_secrets_file, scopes)
+                credentials = flow.run_local_server()
+                youtube = googleapiclient.discovery.build(
+                    api_service_name, api_version, credentials=credentials)
 
-            window.close()
-
+                window.close()
 
     request = youtube.playlists().list(
         part="snippet,contentDetails",
@@ -139,8 +143,9 @@ def main():
             )
             res = request.execute()
             if res["pageInfo"]["totalResults"] == 0:
-                data.append([sp_item["snippet"]["title"], "https://www.youtube.com/watch?v=" + str(sp_item["snippet"]["resourceId"][
-                                    "videoId"]), sp_item["id"]])
+                data.append([sp_item["snippet"]["title"],
+                             "https://www.youtube.com/watch?v=" + str(sp_item["snippet"]["resourceId"][
+                                                                          "videoId"]), sp_item["id"]])
             elif res["pageInfo"]["totalResults"] > 0:
                 if "regionRestriction" in res["items"][0]["contentDetails"]:
                     if "blocked" in res["items"][0]["contentDetails"]["regionRestriction"]:
