@@ -23,7 +23,7 @@ I also added a way to remove a video from a playlist using the 'video ID' provid
 
 
 # Instructions
-Youtube API has a daily quota limit. It's hard to reach it if you're the only user with a couple of videos, but with multiple users and a ton of videos in their playlist, the user should generate their own client ID key. For now atleast
+Youtube API has a daily quota limit. It's hard to reach it if you're the only user with a couple of videos, but with multiple users and a ton of videos in their playlist, it'll fill up fast. The user should generate their own client ID key. For now atleast
 
 * Generate API Keys. For instructions on how, see [below section](#Generating-API-key).
 * Download, or clone this repository
