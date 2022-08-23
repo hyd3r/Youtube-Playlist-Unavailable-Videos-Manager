@@ -37,15 +37,31 @@ class Table(sg.Table):
 
 scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 working_directory = os.getcwd()
-
+regions = ["AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA",
+           "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV",
+           "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR", "CU",
+           "CV", "CW", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES",
+           "ET", "FI", "FJ", "FK", "FM", "FO", "FR", "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM",
+           "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", "HK", "HM", "HN", "HR", "HT", "HU", "ID", "IE",
+           "IL", "IM", "IN", "IO", "IQ", "IR", "IS", "IT", "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM",
+           "KN", "KP", "KR", "KW", "KY", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY",
+           "MA", "MC", "MD", "ME", "MF", "MG", "MH", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT",
+           "MU", "MV", "MW", "MX", "MY", "MZ", "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP", "NR", "NU",
+           "NZ", "OM", "PA", "PE", "PF", "PG", "PH", "PK", "PL", "PM", "PN", "PR", "PS", "PT", "PW", "PY", "QA",
+           "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM",
+           "SN", "SO", "SR", "SS", "ST", "SV", "SX", "SY", "SZ", "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TL",
+           "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE",
+           "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "ZW"]
 
 def main():
-    layout1 = [[sg.Text('Please authenticate. Browse to your client secret json file then click login')],
-               [sg.InputText(key="-FILE_PATH-"), sg.FileBrowse(initial_folder=working_directory, file_types=(("JSON Files", "*.json"),), key="-BROWSE-")],
-               [sg.Button('Click here to Login')]]
+    layout1 = [[sg.Text('Please authenticate. Browse to your client secret json file, select your region then click login')],
+               [sg.InputText(key="-FILE_PATH-"),
+                sg.FileBrowse(initial_folder=working_directory, file_types=(("JSON Files", "*.json"),),
+                              key="-BROWSE-")],
+               [sg.Combo(regions, size=(5,7), key="-REGION-"), sg.Button('Click here to Login')]]
 
     window = sg.Window('YT API Auth', layout1, finalize=True)
-
+    selected_region = ""
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -54,7 +70,8 @@ def main():
             if values["-FILE_PATH-"] == "":
                 sg.Popup('Browse to your secret json file first before logging in', keep_on_top=True)
                 continue
-            else:
+            elif str(values["-REGION-"]).upper() in regions:
+                selected_region = str(values["-REGION-"]).upper()
                 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
 
                 api_service_name = "youtube"
@@ -68,6 +85,8 @@ def main():
                     api_service_name, api_version, credentials=credentials)
 
                 window.close()
+            else:
+                sg.Popup("Please select a valid region")
 
     request = youtube.playlists().list(
         part="snippet,contentDetails",
@@ -126,6 +145,7 @@ def main():
     cont = True
     nextToken = ""
     data = []
+
     while cont:
         if "nextPageToken" in selected_playlist:
             nextToken = selected_playlist["nextPageToken"]
@@ -150,10 +170,19 @@ def main():
                 if "regionRestriction" in res["items"][0]["contentDetails"]:
                     if "blocked" in res["items"][0]["contentDetails"]["regionRestriction"]:
                         for block in res["items"][0]["contentDetails"]["regionRestriction"]["blocked"]:
-                            if block == "PH":
+                            if block == selected_region:
                                 data.append([sp_item["snippet"]["title"],
                                              "https://www.youtube.com/watch?v=" + str(sp_item["snippet"]["resourceId"][
                                                                                           "videoId"]), sp_item["id"]])
+                    elif "allowed" in res["items"][0]["contentDetails"]["regionRestriction"]:
+                        isAllowed = False
+                        for allow in res["items"][0]["contentDetails"]["regionRestriction"]["allowed"]:
+                            if allow == selected_region:
+                                isAllowed = True
+                        if isAllowed == False:
+                            data.append([sp_item["snippet"]["title"],
+                                         "https://www.youtube.com/watch?v=" + str(sp_item["snippet"]["resourceId"][
+                                                                                      "videoId"]), sp_item["id"]])
 
         request = youtube.playlistItems().list(
             part="snippet",
@@ -169,12 +198,14 @@ def main():
     right_click_menu = ['&Right', ['Copy']]
 
     layout = [
-        [Table(data, headings=headings, expand_x=True, expand_y=True, enable_events=True, auto_size_columns=True, display_row_numbers=True,
+        [Table(data, headings=headings, expand_x=True, expand_y=True, enable_events=True, auto_size_columns=True,
+               display_row_numbers=True,
                justification='center', right_click_menu=right_click_menu, key='-TABLE-')],
         [sg.Button("Open playlist video removal window", key="del"),
          sg.Text("You can right click any field to copy the text")]
     ]
-    window = sg.Window("All unavailable videos in your playlist", layout, finalize=True, resizable=True, size=(900,400))
+    window = sg.Window("All unavailable videos in your playlist", layout, finalize=True, resizable=True,
+                       size=(900, 400))
     table = window["-TABLE-"]
 
     while True:
