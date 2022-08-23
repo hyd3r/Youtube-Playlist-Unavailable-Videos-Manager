@@ -17,7 +17,8 @@ It then displays the video title, url link (so you can search it in the google o
 
 I also added a way to remove a video from a playlist using the 'video ID' provided
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/Kyv4HjHCtXs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Showcase](http://i3.ytimg.com/vi/Kyv4HjHCtXs/hqdefault.jpg)](https://www.youtube.com/watch?v=Kyv4HjHCtXs)
+
 
 # Instructions
 to be added tom
