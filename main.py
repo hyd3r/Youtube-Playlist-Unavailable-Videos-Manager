@@ -169,12 +169,12 @@ def main():
     right_click_menu = ['&Right', ['Copy']]
 
     layout = [
-        [Table(data, headings=headings, enable_events=True, auto_size_columns=True, display_row_numbers=True,
+        [Table(data, headings=headings, expand_x=True, expand_y=True, enable_events=True, auto_size_columns=True, display_row_numbers=True,
                justification='center', right_click_menu=right_click_menu, key='-TABLE-')],
         [sg.Button("Open playlist video removal window", key="del"),
          sg.Text("You can right click any field to copy the text")]
     ]
-    window = sg.Window("All unavailable videos in your playlist", layout, finalize=True, resizable=True)
+    window = sg.Window("All unavailable videos in your playlist", layout, finalize=True, resizable=True, size=(900,400))
     table = window["-TABLE-"]
 
     while True:
