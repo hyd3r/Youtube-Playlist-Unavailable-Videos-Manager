@@ -34,7 +34,7 @@ Youtube API has a daily quota limit. It's hard to reach it if you're the only us
 * On the first screen, browse to your Client ID you downloaded earlier, then choose your region from the dropdown then click login
 * Google login will open and make sure to login the gmail you entered in `Test Users` in `OAuth Consent Screen`
 * Choose a playlist you want to check for unavailable videos
-* When done, a table will show the video title, url link and video ID(Copy this to the button bellow if you want to remove it from your playlist)
+* When done, a table will show the video title, url link and video ID(Copy this to the button below if you want to remove it from your playlist)
 * Normally you search for the video title to replace it, but if it is Deleted or Privated, you can copy the url link to google or the waybackmachine. It will show you its title before it got deleted or privated
 
 # Generating API key
