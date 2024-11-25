@@ -90,13 +90,13 @@ def main():
 
     request = youtube.playlists().list(
         part="snippet,contentDetails",
-        maxResults=25,
+        maxResults=50,
         mine=True
     )
     pl_list = request.execute()
     pl_items = pl_list["items"]
 
-    layout1 = list(range(25))
+    layout1 = list(range(50))
     num = 0
     for item in pl_items:
         respo = requests.get(item["snippet"]["thumbnails"]["medium"]["url"])
@@ -110,8 +110,20 @@ def main():
                                    key=item["id"] + " " + str(item["contentDetails"]["itemCount"]))]]
         num += 1
 
-    layout = [[sg.Column(layout1[ite], element_justification='c') for ite in range(num)]]
-    window = sg.Window('Choose a playlist', layout, finalize=True)
+    columnscrollable = [
+        [
+            sg.Column(layout1[ite], element_justification='c') for ite in range(num)
+        ]
+    ]
+
+        
+    layout = [
+        [
+            sg.Column(columnscrollable, scrollable = True)
+        ]
+    ]
+    
+    window = sg.Window('Choose a playlist', layout, resizable=True ,finalize=True)
     window.bring_to_front()
     playlist_id = ""
     playlist_count = 0
