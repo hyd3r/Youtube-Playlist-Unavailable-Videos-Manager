@@ -90,13 +90,13 @@ def main():
 
     request = youtube.playlists().list(
         part="snippet,contentDetails",
-        maxResults=50,
+        maxResults=200,
         mine=True
     )
     pl_list = request.execute()
     pl_items = pl_list["items"]
 
-    layout1 = list(range(50))
+    layout1 = list(range(len(pl_items)))
     num = 0
     for item in pl_items:
         respo = requests.get(item["snippet"]["thumbnails"]["medium"]["url"])
@@ -145,7 +145,7 @@ def main():
               [sg.Text("0/" + playlist_count, key='-PROGRESS_TEXT-')]
               ]
 
-    window = sg.Window("Loading", layout, finalize=True)
+    window = sg.Window("Loading", layout, resizable=True, finalize=True)
     loading_progress = 0
 
     request = youtube.playlistItems().list(
